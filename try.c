@@ -286,8 +286,8 @@ float Volts_at_Pin(unsigned char pin)
 
 void main (void) 
 {
-	float period_1,period_2;
-	float v[4],peak_voltage_1; //,rms_voltage,phase_diff,signal_frequency;
+	float period_1,zero_cross,phase_diff;
+	float v[4],peak_voltage_1,peak_voltage_2; 
 	char rms_value_string[16],phase_diff_string[16];
 	
 	TIMER0_Init();
@@ -307,10 +307,10 @@ void main (void)
 		TF0=0;
 		overflow_count=0;
 		
-		while(P1_4!=0); // Wait for the signal to be zero
-		while(P1_4!=1); // Wait for the signal to be one
+		while(P1_0!=0); // Wait for the signal to be zero
+		while(P1_0!=1); // Wait for the signal to be one
 		TR0=1; // Start the timer
-		while(P1_4!=0) // Wait for the signal to be zero
+		while(P1_0!=0) // Wait for the signal to be zero
 		{
 			if(TF0==1) // Did the 16-bit timer overflow?
 			{
@@ -318,7 +318,7 @@ void main (void)
 				overflow_count++;
 			}
 		}
-		while(P1_4!=1) // Wait for the signal to be one
+		while(P1_0!=1) // Wait for the signal to be one
 		{
 			if(TF0==1) // Did the 16-bit timer overflow?
 			{
@@ -375,19 +375,67 @@ void main (void)
     // Read 14-bit value from the pins configured as analog inputs
 		v[0] = Volts_at_Pin(QFP32_MUX_P1_4);
 		v[1] = Volts_at_Pin(QFP32_MUX_P1_5);
+		//peak_voltage_1 = 5;
       	//peak_voltage= measure_peak_voltage(v[1], half_cycle_time);
 	    //getting peak_voltage_for_1
-	    while(P1_4 != 0){
-	    waitms((period_1*1000/4));
-	    peak_voltage_1 = v[0];
-	    }
 	    
-	    printf("Pv_1 = %f, \r",peak_voltage_1);
+	   	while(P1_0 != 0); // Wait for the signal to be zero
+		while(P1_0 != 1); // Wait for the signal to be one
+	    //printf("Entered loop\n");
+	    waitms(((period_1*1000)/4));
+	    peak_voltage_1 = Volts_at_Pin(QFP32_MUX_P1_4);
+	    
+	    //getting peak_voltage_for_1
+	    
+	   	while(P1_1 != 0); // Wait for the signal to be zero
+		while(P1_1 != 1); // Wait for the signal to be one
+	    //printf("Entered loop\n");
+	    waitms(((period_1*1000)/4));
+	    peak_voltage_2 = Volts_at_Pin(QFP32_MUX_P1_5);
+	    
+	    
+	    
 	    
 	    //phase_diff = get_phase_difference(v[1], v[0], half_cycle_time);
 	   	//rms_voltage = peak_voltage /1.41421356237 ;
 	    //signal_frequency = 1/(half_cycle_time*2);
 	    
+	    TL0=0; 
+		TH0=0;
+		TF0=0;
+		overflow_count=0;
+		
+		while(Volts_at_Pin(QFP32_MUX_P1_4) < 0.1); // Wait for the signal to be zero
+		//while(P1_0!=1); // Wait for the signal to be one
+		TR0=1; // Start the timer
+		while(Volts_at_Pin(QFP32_MUX_P1_4) < 0.1) // Wait for the signal to be zero
+		{
+			if(TF0==1) // Did the 16-bit timer overflow?
+			{
+				TF0=0;
+				overflow_count++;
+			}
+		}
+		while(Volts_at_Pin(QFP32_MUX_P1_4) < 0.1) // Wait for the signal to be one
+		{
+			if(TF0==1) // Did the 16-bit timer overflow?
+			{
+				TF0=0;
+				overflow_count++;
+			}
+		}
+		while (Volts_at_Pin(QFP32_MUX_P1_5) < 0.1); // Wait for the signal to be zero
+		
+		TR0=0; // Stop timer 0, the 24-bit number [overflow_count-TH0-TL0] has the period!
+		zero_cross=(overflow_count*65536.0+TH0*256.0+TL0)*(12.0/SYSCLK);
+	    
+	    phase_diff = zero_cross*(360/(period_1));
+	    
+	    /*printf("Pv_1rms = %f Pv_2rms = %f,Pase_diff = %f \r",peak_voltage_1/1.414,peak_voltage_2/1.414,phase_diff);
+	    sprintf(rms_value_string,"%f",peak_voltage_1);
+	    sprintf(phase_diff_string,"%f",phase_diff);
+	    LCDprint(rms_value_string,1,1);
+	    LCDprint(phase_diff_string,2,1);*/
 	    //sprintf(string_name,"%f",variable);
 	    //sprintf(rms_value_string,"%f",rms_voltage);
 	    //sprintf(phase_diff_string,"%f",phase_diff);
@@ -396,10 +444,9 @@ void main (void)
 	   //LCDprint(phase_diff_string,2,1);*/
 	    
 	    //printf ("V@P1.4=%7.5fV, V@1.5=%7.5fV,\r", v[0], v[1]);
-		waitms(200);	
+		waitms(250);	
     }
 	
 }
 
-
- 
+//rms_value_string[16],phase_diff_string[16];
