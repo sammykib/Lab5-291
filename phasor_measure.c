@@ -367,17 +367,17 @@ void main (void)
 	        "Compiled: %s, %s\n\n",
 	        __FILE__, __DATE__, __TIME__);
 	
-	InitPinADC(2, 2); // Configure P2.2 as analog input
-	InitPinADC(2, 3); // Configure P2.3 as analog input
-	InitPinADC(2, 4); // Configure P2.4 as analog input
-	InitPinADC(2, 5); // Configure P2.5 as analog input
+	InitPinADC(0, 4); // Configure P2.2 as analog input
+	InitPinADC(0, 5); // Configure P2.3 as analog input
+	InitPinADC(0, 6); // Configure P2.4 as analog input
+	InitPinADC(0, 7); // Configure P2.5 as analog input
     InitADC();
 
 	while(1)
 	{
 	    // Read 14-bit value from the pins configured as analog inputs
-		v[0] = Volts_at_Pin(QFP32_MUX_P2_2);
-		v[1] = Volts_at_Pin(QFP32_MUX_P2_3);
+		v[0] = Volts_at_Pin(QFP32_MUX_P0_4);
+		v[1] = Volts_at_Pin(QFP32_MUX_P0_5);
 	    half_cycle_time = measure_half_cycle(v[0]);
 	    peak_voltage= measure_peak_voltage(v[0], half_cycle_time);
 	    phase_diff = get_phase_difference(v[1], v[0], half_cycle_time);
